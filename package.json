@@ -1,0 +1,31 @@
+{
+  "name": "dev-mountain-capstone",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "react": "npm start --app react",
+    "dev": "concurrently \"npm run start\" \"npm run react\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jacksonporter24/dev-mountain-capstone.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jacksonporter24/dev-mountain-capstone/issues"
+  },
+  "homepage": "https://github.com/jacksonporter24/dev-mountain-capstone#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "body-parser": "^1.20.0",
+    "dotenv": "^16.0.2",
+    "express-session": "^1.17.3",
+    "massive": "^6.10.2",
+    "pg": "^8.8.0",
+    "sequelize": "^6.22.0"
+  }
+}
