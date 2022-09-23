@@ -40,9 +40,9 @@ app.use(cors());
 app.use("/", express.static(path.join(__dirname, "./src")));
 app.use(bodyParser.json());
 
-app.get("/api/books", getBooks);
+// app.get("/api/books", getBooks);
 
-app.get(`/api/books/:bookid`, getBookById);
+// app.get(`/api/books/:bookid`, getBookById);
 
 app.get("/api/chapters/:bookid", getChaptersById);
 

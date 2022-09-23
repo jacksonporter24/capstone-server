@@ -2,8 +2,9 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 
 const getBooks = (req, res) => {
+  let username = req.body.userid
   const db = req.app.get("db");
-  db.query(`SELECT * FROM books;`)
+  db.query(`SELECT * FROM books WHERE userid = ($1);`, [username])
     .then((dbRes) => res.status(200).json(dbRes.rows))
     .catch((err) => console.log(err));
 };
@@ -56,7 +57,7 @@ const createBooksByUserId = (req, res) => {
   )
     .then((dbRes) =>
       db
-        .query(`SELECT * FROM books;`)
+        .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
         .then((dbRes) => res.status(200).json(dbRes.rows))
         .catch((err) => console.log(err))
     )
@@ -72,7 +73,7 @@ const createBooks = (req, res) => {
   )
     .then((dbRes) =>
       db
-        .query(`SELECT * FROM books;`)
+        .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
         .then((dbRes) => res.status(200).json(dbRes.rows))
         .catch((err) => console.log(err))
     )
@@ -88,7 +89,7 @@ const createChapter = (req, res) => {
   )
     .then((dbRes) =>
       db
-        .query(`SELECT * FROM chapters;`)
+        .query(`SELECT * FROM chapters WHERE bookid = ($1);`, [bookid])
         .then((dbRes) => res.status(200).json(dbRes.rows))
         .catch((err) => console.log(err))
     )
