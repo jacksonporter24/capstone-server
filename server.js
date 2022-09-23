@@ -16,6 +16,8 @@ const {
   createUser,
   getUserById,
   handleLogin,
+  getBooksByUserID,
+  createBooksByUserID
 } = require("./controller");
 
 const app = express();
@@ -38,7 +40,7 @@ app.use(cors());
 app.use("/", express.static(path.join(__dirname, "./src")));
 app.use(bodyParser.json());
 
-app.get("/api/books/:userid", getBooks);
+app.get("/api/books", getBooks);
 
 app.get(`/api/books/:bookid`, getBookById);
 
@@ -54,6 +56,10 @@ app.get(`/api/users/:userid`, getUserById);
 
 app.post("/api/users", createUser);
 
-app.post("/api/username", handleLogin)
+app.post("/api/username", handleLogin);
+
+app.get("/api/userbooks/:userid", getBooksByUserID);
+
+app.post("/api/userbooks/:userid", createBooksByUserID);
 
 app.listen(port, () => console.log(`Server running on ${port}`));
