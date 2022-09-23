@@ -45,7 +45,6 @@ const getBookById = (req, res) => {
     .catch((err) => console.log(err));
 };
 
-
 const createBooksByUserId = (req, res) => {
   const db = req.app.get("db");
   const { userid, title, description } = req.body;
@@ -135,26 +134,34 @@ const createUser = async (req, res) => {
 
 async function handleLogin(req, res) {
   try {
+    let username = req.body.user;
+    console.log("UserName - " + username);
     const db = req.app.get("db");
-    console.log(req.body);
     // const [user1] = await db.user1.where('email=$1 OR username=$1', [req.body.username])
     const user = await db.query(
-      `SELECT * FROM users WHERE username='${req.body.user}'`
+      `SELECT * FROM users WHERE username='${username}'`
     );
-    // console.log(user)
-    if (!user.rows[0])
+    if (!user.rows[0]) {
+      console.log("Non valid Creds");
       return res.status(400).send("Please enter valid login credentials");
-    console.log(user.rows[0]);
-    const authenticated = await bcrypt.compareSync(
+    }
+    console.log("this is", user.rows[0]);
+    const authenticated = bcrypt.compareSync(
       req.body.password,
       user.rows[0].password
     );
-    if (!authenticated)
+    console.log(user.rows[0].password);
+    if (!authenticated) {
+      console.log("Non valid Creds");
       return res.status(400).send("Please enter valid login credentials");
-
+    }
+    console.log("this is the res.status", res.status);
     delete user.rows[0].password;
-    if (authenticated) req.session.user = user.rows[0];
-    return res.send(user.rows[0]);
+    if (authenticated) {
+      console.log("authenticated");
+      req.session.user = user.rows[0];
+    }
+    return res.status(200).send(user.rows[0]);
   } catch (error) {
     console.error(error);
     res.status(500).send(error);
