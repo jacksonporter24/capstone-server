@@ -47,7 +47,7 @@ const getBookById = (req, res) => {
 };
 
 const updateBooks = (req, res) => {
-  console.log('hit update books', req.body)
+  console.log("hit update books", req.body);
   const db = req.app.get("db");
   const { bookid, userid } = req.params;
   const { title, description } = req.body;
@@ -55,6 +55,20 @@ const updateBooks = (req, res) => {
     `UPDATE books SET title = ($2), description = ($3) WHERE bookid = ($1)`,
     [bookid, title, description]
   )
+    .then((dbRes) =>
+      db
+        .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
+        .then((dbRes) => res.status(200).json(dbRes.rows))
+        .catch((err) => console.log(err))
+    )
+    .catch((err) => console.log(err));
+};
+
+const deleteBooks = (req, res) => {
+  console.log("hit delete books", req.body);
+  const db = req.app.get("db");
+  const { bookid, userid } = req.params;
+  db.query(`DELETE FROM books WHERE bookid = ($1)`, [bookid])
     .then((dbRes) =>
       db
         .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
@@ -201,4 +215,5 @@ module.exports = {
   getUsersById,
   createBooksByUserId,
   updateBooks,
+  deleteBooks,
 };
