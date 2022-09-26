@@ -184,7 +184,7 @@ async function handleLogin(req, res) {
 const getChaptersById = (req, res) => {
   const db = req.app.get("db");
   const bookid = req.params.bookid;
-  db.query(`SELECT * FROM chapters WHERE "bookid" = ($1)`, [bookid])
+  db.query(`SELECT * FROM chapters WHERE "bookid" = ($1) ORDER BY chapterid ASC`, [bookid])
     .then((dbRes) => res.status(200).json(dbRes.rows))
     .catch((err) => console.log(err));
 };
@@ -198,7 +198,7 @@ const createChapter = (req, res) => {
   )
     .then((dbRes) =>
       db
-        .query(`SELECT * FROM chapters WHERE bookid = ($1);`, [bookid])
+        .query(`SELECT * FROM chapters WHERE bookid = ($1) ORDER BY chapterid ASC;`, [bookid])
         .then((dbRes) => res.status(200).json(dbRes.rows))
         .catch((err) => console.log(err))
     )
@@ -209,11 +209,27 @@ const updateChapters = (req, res) => {
   const db = req.app.get("db");
   const { chapterid, bookid } = req.params;
   const { chapternumber, chaptertitle, chapterdescription } = req.body;
-  console.log(chapternumber, chaptertitle, chapterdescription)
+  console.log(chapternumber, chaptertitle, chapterdescription);
   db.query(
     `UPDATE chapters SET chapternumber = ($2), chaptertitle = ($3), chapterdescription = ($4) WHERE chapterid = ($1)`,
     [chapterid, chapternumber, chaptertitle, chapterdescription]
   )
+    .then((dbRes) =>
+      db
+        .query(
+          `SELECT * FROM chapters WHERE bookid = ($1) ORDER BY chapterid ASC;`,
+          [bookid]
+        )
+        .then((dbRes) => res.status(200).json(dbRes.rows))
+        .catch((err) => console.log(err))
+    )
+    .catch((err) => console.log(err));
+};
+
+const deleteChapters = (req, res) => {
+  const db = req.app.get("db");
+  const { chapterid, bookid } = req.params;
+  db.query(`DELETE FROM chapters WHERE chapterid = ($1)`, [chapterid])
     .then((dbRes) =>
       db
         .query(`SELECT * FROM chapters WHERE bookid = ($1) ORDER BY chapterid ASC;`, [bookid])
@@ -222,25 +238,6 @@ const updateChapters = (req, res) => {
     )
     .catch((err) => console.log(err));
 };
-
-// const updateBooks = (req, res) => {
-//   // console.log("hit update books", req.body);
-//   const db = req.app.get("db");
-//   const { bookid, userid } = req.params;
-//   const { title, description } = req.body;
-//   db.query(
-//     `UPDATE books SET title = ($2), description = ($3) WHERE bookid = ($1)`,
-//     [bookid, title, description]
-//   )
-//     .then((dbRes) =>
-//       db
-//         .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
-//         .then((dbRes) => res.status(200).json(dbRes.rows))
-//         .catch((err) => console.log(err))
-//     )
-//     .catch((err) => console.log(err));
-// };
-
 // const deleteBooks = (req, res) => {
 //   // console.log("hit delete books", req.body);
 //   const db = req.app.get("db");
@@ -270,5 +267,6 @@ module.exports = {
   createBooksByUserId,
   updateBooks,
   deleteBooks,
-  updateChapters
+  updateChapters,
+  deleteChapters,
 };

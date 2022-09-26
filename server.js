@@ -20,6 +20,7 @@ const {
   updateBooks,
   deleteBooks,
   updateChapters,
+  deleteChapters
 } = require("./controller");
 
 const app = express();
@@ -67,5 +68,7 @@ app.put("/api/editbooks/:bookid/:userid", updateBooks);
 app.delete("/api/deletebooks/:bookid/:userid", deleteBooks);
 
 app.put("/api/editchapters/:chapterid/:bookid", updateChapters);
+
+app.delete("/api/deletechapters/:chapterid/:bookid", deleteChapters);
 
 app.listen(port, () => console.log(`Server running on ${port}`));
