@@ -19,6 +19,7 @@ const {
   getBooksByUserID,
   updateBooks,
   deleteBooks,
+  updateChapters,
 } = require("./controller");
 
 const app = express();
@@ -64,5 +65,7 @@ app.get("/api/userbooks/:userid", getBooksByUserID);
 app.put("/api/editbooks/:bookid/:userid", updateBooks);
 
 app.delete("/api/deletebooks/:bookid/:userid", deleteBooks);
+
+app.put("/api/editchapters/:chapterid/:bookid", updateChapters);
 
 app.listen(port, () => console.log(`Server running on ${port}`));
