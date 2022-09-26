@@ -17,7 +17,7 @@ const {
   getUserById,
   handleLogin,
   getBooksByUserID,
-  createBooksByUserID
+  updateBooks,
 } = require("./controller");
 
 const app = express();
@@ -59,6 +59,8 @@ app.post("/api/users", createUser);
 app.post("/api/username", handleLogin);
 
 app.get("/api/userbooks/:userid", getBooksByUserID);
+
+app.put("/api/editbooks/:bookid/:userid", updateBooks);
 
 // app.post("/api/userbooks/:userid", createBooksByUserID);
 

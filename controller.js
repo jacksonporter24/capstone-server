@@ -2,7 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 
 const getBooks = (req, res) => {
-  let username = req.body.userid
+  let username = req.body.userid;
   const db = req.app.get("db");
   db.query(`SELECT * FROM books WHERE userid = ($1);`, [username])
     .then((dbRes) => res.status(200).json(dbRes.rows))
@@ -43,6 +43,24 @@ const getBookById = (req, res) => {
   console.log("getbook by id hit");
   db.query(`SELECT * FROM books WHERE "bookid" = ($1)`, [bookid])
     .then((dbRes) => res.status(200).json(dbRes.rows))
+    .catch((err) => console.log(err));
+};
+
+const updateBooks = (req, res) => {
+  console.log('hit update books', req.body)
+  const db = req.app.get("db");
+  const { bookid, userid } = req.params;
+  const { title, description } = req.body;
+  db.query(
+    `UPDATE books SET title = ($2), description = ($3) WHERE bookid = ($1)`,
+    [bookid, title, description]
+  )
+    .then((dbRes) =>
+      db
+        .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
+        .then((dbRes) => res.status(200).json(dbRes.rows))
+        .catch((err) => console.log(err))
+    )
     .catch((err) => console.log(err));
 };
 
@@ -182,4 +200,5 @@ module.exports = {
   getBooksByUserID,
   getUsersById,
   createBooksByUserId,
+  updateBooks,
 };
