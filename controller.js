@@ -184,7 +184,7 @@ async function handleLogin(req, res) {
 const getChaptersById = (req, res) => {
   const db = req.app.get("db");
   const bookid = req.params.bookid;
-  db.query(`SELECT * FROM chapters WHERE "bookid" = ($1) ORDER BY chapterid ASC`, [bookid])
+  db.query(`SELECT * FROM chapters WHERE "bookid" = ($1) ORDER BY chapternumber ASC`, [bookid])
     .then((dbRes) => res.status(200).json(dbRes.rows))
     .catch((err) => console.log(err));
 };
@@ -198,7 +198,7 @@ const createChapter = (req, res) => {
   )
     .then((dbRes) =>
       db
-        .query(`SELECT * FROM chapters WHERE bookid = ($1) ORDER BY chapterid ASC;`, [bookid])
+        .query(`SELECT * FROM chapters WHERE bookid = ($1) ORDER BY chapternumber ASC;`, [bookid])
         .then((dbRes) => res.status(200).json(dbRes.rows))
         .catch((err) => console.log(err))
     )
@@ -217,7 +217,7 @@ const updateChapters = (req, res) => {
     .then((dbRes) =>
       db
         .query(
-          `SELECT * FROM chapters WHERE bookid = ($1) ORDER BY chapterid ASC;`,
+          `SELECT * FROM chapters WHERE bookid = ($1) ORDER BY chapternumber ASC;`,
           [bookid]
         )
         .then((dbRes) => res.status(200).json(dbRes.rows))
@@ -232,25 +232,12 @@ const deleteChapters = (req, res) => {
   db.query(`DELETE FROM chapters WHERE chapterid = ($1)`, [chapterid])
     .then((dbRes) =>
       db
-        .query(`SELECT * FROM chapters WHERE bookid = ($1) ORDER BY chapterid ASC;`, [bookid])
+        .query(`SELECT * FROM chapters WHERE bookid = ($1) ORDER BY chapternumber ASC;`, [bookid])
         .then((dbRes) => res.status(200).json(dbRes.rows))
         .catch((err) => console.log(err))
     )
     .catch((err) => console.log(err));
 };
-// const deleteBooks = (req, res) => {
-//   // console.log("hit delete books", req.body);
-//   const db = req.app.get("db");
-//   const { bookid, userid } = req.params;
-//   db.query(`DELETE FROM books WHERE bookid = ($1)`, [bookid])
-//     .then((dbRes) =>
-//       db
-//         .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
-//         .then((dbRes) => res.status(200).json(dbRes.rows))
-//         .catch((err) => console.log(err))
-//     )
-//     .catch((err) => console.log(err));
-// };
 
 module.exports = {
   getBooks,
