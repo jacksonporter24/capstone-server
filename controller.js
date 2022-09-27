@@ -2,71 +2,89 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 
 //USERS:
+
+//CREATE
+
+const createUser = async (req, res) => {
+  const db = req.app.get("db");
+  const { username, password, firstname, lastname } = req.body;
+
+  const salt = bcrypt.genSaltSync(5);
+  const passwordHash = await bcrypt.hashSync(password, salt);
+
+  const user = await db.query(
+    `INSERT INTO users("username", "password", "firstname", "lastname") VALUES ($1, $2, $3, $4) RETURNING *;`,
+    [username, passwordHash, firstname, lastname]
+  );
+
+  for (let i = 0; i < user.rows.length; i++) {
+    delete user.rows[i].password;
+  }
+  req.session.user = user.rows[0];
+  res.status(200).json(user.rows[0]);
+};
+
+//GET
+
 const getUsersById = (req, res) => {
   const db = req.app.get("db");
   const userid = req.params.userid;
-  // console.log(`${userid}`);
   db.query(`SELECT * FROM users WHERE "userid" = ($1)`, [userid])
     .then((dbRes) => res.status(200).json(dbRes.rows))
     .catch((err) => console.log(err));
 };
-//BOOKS:
 
-const getBooks = (req, res) => {
-  let username = req.body.userid;
-  const db = req.app.get("db");
-  db.query(`SELECT * FROM books WHERE userid = ($1);`, [username])
-    .then((dbRes) => res.status(200).json(dbRes.rows))
-    .catch((err) => console.log(err));
-};
-
-const getBooksByUserID = async (req, res) => {
-  // console.log("hit the get books user id");
+const getUserById = (req, res) => {
   const db = req.app.get("db");
   const userid = req.params.userid;
-  // console.log("this should be userid", userid);
-  db.query(`SELECT * FROM books WHERE "userid" = ($1)`, [userid])
+  db.query(`SELECT * FROM users WHERE "userid" = ($1)`, [userid])
     .then((dbRes) => res.status(200).json(dbRes.rows))
     .catch((err) => console.log(err));
 };
 
-const updateBooks = (req, res) => {
-  // console.log("hit update books", req.body);
+const getUsers = (req, res) => {
   const db = req.app.get("db");
-  const { bookid, userid } = req.params;
-  const { title, description } = req.body;
-  db.query(
-    `UPDATE books SET title = ($2), description = ($3) WHERE bookid = ($1)`,
-    [bookid, title, description]
-  )
-    .then((dbRes) =>
-      db
-        .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
-        .then((dbRes) => res.status(200).json(dbRes.rows))
-        .catch((err) => console.log(err))
-    )
+  db.query(`SELECT * FROM users;`)
+    .then((dbRes) => res.status(200).json(dbRes.rows))
     .catch((err) => console.log(err));
 };
 
-const deleteBooks = (req, res) => {
-  // console.log("hit delete books", req.body);
-  const db = req.app.get("db");
-  const { bookid, userid } = req.params;
-  db.query(`DELETE FROM books WHERE bookid = ($1)`, [bookid])
-    .then((dbRes) =>
-      db
-        .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
-        .then((dbRes) => res.status(200).json(dbRes.rows))
-        .catch((err) => console.log(err))
-    )
-    .catch((err) => console.log(err));
-};
+//OTHER
+
+async function handleLogin(req, res) {
+  try {
+    let username = req.body.user;
+    const db = req.app.get("db");
+    const user = await db.query(
+      `SELECT * FROM users WHERE username='${username}'`
+    );
+    if (!user.rows[0]) {
+      return res.status(400).send("Please enter valid login credentials");
+    }
+    const authenticated = bcrypt.compareSync(
+      req.body.password,
+      user.rows[0].password
+    );
+    if (!authenticated) {
+      return res.status(400).send("Please enter valid login credentials");
+    }
+    delete user.rows[0].password;
+    if (authenticated) {
+      req.session.user = user.rows[0];
+    }
+    return res.status(200).send(user.rows[0]);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+}
+
+//BOOKS:
+
+//CREATE
 
 const createBooksByUserId = (req, res) => {
   const db = req.app.get("db");
   const { userid, title, description } = req.body;
-  // userid = +userid
-  // console.log(req.body);
   db.query(
     `INSERT INTO books("userid", "title", "description") VALUES ($1, $2, $3);`,
     [+userid, title, description]
@@ -96,98 +114,69 @@ const createBooks = (req, res) => {
     .catch((err) => console.log(err));
 };
 
+//EDIT
+
+const updateBooks = (req, res) => {
+  const db = req.app.get("db");
+  const { bookid, userid } = req.params;
+  const { title, description } = req.body;
+  db.query(
+    `UPDATE books SET title = ($2), description = ($3) WHERE bookid = ($1)`,
+    [bookid, title, description]
+  )
+    .then((dbRes) =>
+      db
+        .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
+        .then((dbRes) => res.status(200).json(dbRes.rows))
+        .catch((err) => console.log(err))
+    )
+    .catch((err) => console.log(err));
+};
+
+//DELETE
+
+const deleteBooks = (req, res) => {
+  const db = req.app.get("db");
+  const { bookid, userid } = req.params;
+  db.query(`DELETE FROM books WHERE bookid = ($1)`, [bookid])
+    .then((dbRes) =>
+      db
+        .query(`SELECT * FROM books WHERE userid = ($1);`, [userid])
+        .then((dbRes) => res.status(200).json(dbRes.rows))
+        .catch((err) => console.log(err))
+    )
+    .catch((err) => console.log(err));
+};
+
+//GET
+
+const getBooks = (req, res) => {
+  let username = req.body.userid;
+  const db = req.app.get("db");
+  db.query(`SELECT * FROM books WHERE userid = ($1);`, [username])
+    .then((dbRes) => res.status(200).json(dbRes.rows))
+    .catch((err) => console.log(err));
+};
+
+const getBooksByUserID = async (req, res) => {
+  const db = req.app.get("db");
+  const userid = req.params.userid;
+  db.query(`SELECT * FROM books WHERE "userid" = ($1)`, [userid])
+    .then((dbRes) => res.status(200).json(dbRes.rows))
+    .catch((err) => console.log(err));
+};
+
 const getBookById = (req, res) => {
   const db = req.app.get("db");
   const bookid = req.params.bookid;
-  // console.log(`${bookid}`);
-  // console.log("getbook by id hit");
   db.query(`SELECT * FROM books WHERE "bookid" = ($1)`, [bookid])
     .then((dbRes) => res.status(200).json(dbRes.rows))
     .catch((err) => console.log(err));
 };
 
-const getUsers = (req, res) => {
-  const db = req.app.get("db");
-  db.query(`SELECT * FROM users;`)
-    .then((dbRes) => res.status(200).json(dbRes.rows))
-    .catch((err) => console.log(err));
-};
-
-const getUserById = (req, res) => {
-  const db = req.app.get("db");
-  const userid = req.params.userid;
-  // console.log(`'this is the getuser by id function', ${userid}`);
-  db.query(`SELECT * FROM users WHERE "userid" = ($1)`, [userid])
-    .then((dbRes) => res.status(200).json(dbRes.rows))
-    .catch((err) => console.log(err));
-};
-
-const createUser = async (req, res) => {
-  const db = req.app.get("db");
-  const { username, password, firstname, lastname } = req.body;
-
-  const salt = bcrypt.genSaltSync(5);
-  const passwordHash = await bcrypt.hashSync(password, salt);
-  // console.log(passwordHash);
-
-  const user = await db.query(
-    `INSERT INTO users("username", "password", "firstname", "lastname") VALUES ($1, $2, $3, $4) RETURNING *;`,
-    [username, passwordHash, firstname, lastname]
-  );
-  // console.log(user);
-
-  for (let i = 0; i < user.rows.length; i++) {
-    delete user.rows[i].password;
-  }
-  req.session.user = user.rows[0];
-  res.status(200).json(user.rows[0]);
-};
-
-async function handleLogin(req, res) {
-  try {
-    let username = req.body.user;
-    // console.log("UserName - " + username);
-    const db = req.app.get("db");
-    // const [user1] = await db.user1.where('email=$1 OR username=$1', [req.body.username])
-    const user = await db.query(
-      `SELECT * FROM users WHERE username='${username}'`
-    );
-    if (!user.rows[0]) {
-      // console.log("Non valid Creds");
-      return res.status(400).send("Please enter valid login credentials");
-    }
-    // console.log("this is", user.rows[0]);
-    const authenticated = bcrypt.compareSync(
-      req.body.password,
-      user.rows[0].password
-    );
-    // console.log(user.rows[0].password);
-    if (!authenticated) {
-      // console.log("Non valid Creds");
-      return res.status(400).send("Please enter valid login credentials");
-    }
-    // console.log("this is the res.status", res.status);
-    delete user.rows[0].password;
-    if (authenticated) {
-      // console.log("authenticated");
-      req.session.user = user.rows[0];
-    }
-    return res.status(200).send(user.rows[0]);
-  } catch (error) {
-    // console.error(error);
-    res.status(500).send(error);
-  }
-}
-
 //CHAPTERS:
 
-const getChaptersById = (req, res) => {
-  const db = req.app.get("db");
-  const bookid = req.params.bookid;
-  db.query(`SELECT * FROM chapters WHERE "bookid" = ($1) ORDER BY chapternumber ASC`, [bookid])
-    .then((dbRes) => res.status(200).json(dbRes.rows))
-    .catch((err) => console.log(err));
-};
+//CREATE
 
 const createChapter = (req, res) => {
   const db = req.app.get("db");
@@ -204,6 +193,8 @@ const createChapter = (req, res) => {
     )
     .catch((err) => console.log(err));
 };
+
+//EDIT
 
 const updateChapters = (req, res) => {
   const db = req.app.get("db");
@@ -226,6 +217,8 @@ const updateChapters = (req, res) => {
     .catch((err) => console.log(err));
 };
 
+//DELETE
+
 const deleteChapters = (req, res) => {
   const db = req.app.get("db");
   const { chapterid, bookid } = req.params;
@@ -236,6 +229,16 @@ const deleteChapters = (req, res) => {
         .then((dbRes) => res.status(200).json(dbRes.rows))
         .catch((err) => console.log(err))
     )
+    .catch((err) => console.log(err));
+};
+
+//GET
+
+const getChaptersById = (req, res) => {
+  const db = req.app.get("db");
+  const bookid = req.params.bookid;
+  db.query(`SELECT * FROM chapters WHERE "bookid" = ($1) ORDER BY chapternumber ASC`, [bookid])
+    .then((dbRes) => res.status(200).json(dbRes.rows))
     .catch((err) => console.log(err));
 };
 

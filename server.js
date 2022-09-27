@@ -43,32 +43,36 @@ app.use(cors());
 app.use("/", express.static(path.join(__dirname, "./src")));
 app.use(bodyParser.json());
 
-// app.get("/api/books", getBooks);
-
-// app.get(`/api/books/:bookid`, getBookById);
+//GET
 
 app.get("/api/chapters/:bookid", getChaptersById);
-
-app.post("/api/books", createBooks);
-
-app.post("/api/chapters", createChapter);
 
 app.get("/api/users", getUsers);
 
 app.get(`/api/users/:userid`, getUserById);
 
+app.get("/api/userbooks/:userid", getBooksByUserID);
+
+//POST
+
+app.post("/api/books", createBooks);
+
+app.post("/api/chapters", createChapter);
+
 app.post("/api/users", createUser);
 
 app.post("/api/username", handleLogin);
 
-app.get("/api/userbooks/:userid", getBooksByUserID);
-
-app.put("/api/editbooks/:bookid/:userid", updateBooks);
+//DELETE
 
 app.delete("/api/deletebooks/:bookid/:userid", deleteBooks);
 
-app.put("/api/editchapters/:chapterid/:bookid", updateChapters);
-
 app.delete("/api/deletechapters/:chapterid/:bookid", deleteChapters);
+
+//PUT
+
+app.put("/api/editbooks/:bookid/:userid", updateBooks);
+
+app.put("/api/editchapters/:chapterid/:bookid", updateChapters);
 
 app.listen(port, () => console.log(`Server running on ${port}`));
